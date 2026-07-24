@@ -1,5 +1,6 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import pandas as pd
 
 # Configuração da página do Streamlit
@@ -13,35 +14,23 @@ st.set_page_config(
 st.title("🏫 Gerador Inteligente de Horário Escolar")
 st.markdown("Faça o upload da planilha da sua escola para gerar a grade de horários otimizada com inteligência artificial.")
 
-# Configuração da API Key (será configurada com segurança no Streamlit Cloud)
+# Configuração da API Key
 api_key = st.sidebar.text_input("Cole sua Gemini API Key (se necessário):", type="password")
 
 if not api_key:
-    # Tenta pegar das configurações salvas do servidor
     if "GEMINI_API_KEY" in st.secrets:
         api_key = st.secrets["GEMINI_API_KEY"]
 
 if api_key:
-    genai.configure(api_key=api_key)
+    # Inicializa o cliente com o novo SDK do Gemini
+    client = genai.Client(api_key=api_key)
 
-    # Definir as Instruções do Sistema
+    # Instruções do Sistema
     system_instructions = """
     Você é o HorárioEscolar AI, um assistente especializado em logística pedagógica e otimização de grades horárias para gestores escolares.
     
     [COLE AQUI TODO O SEU PROMPT DAS INSTRUÇÕES DO SISTEMA QUE ESTRUTURAMOS ANTERIORMENTE]
     """
-
-    # Configuração do Modelo Gemini com Thinking / Parâmetros
-    generation_config = {
-        "temperature": 0.1,
-        "top_p": 0.95,
-    }
-
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",  # 
-        generation_config=generation_config,
-        system_instruction=system_instructions
-    )
 
     # Área de Upload da Planilha
     uploaded_file = st.file_uploader("Envie a planilha da escola (.xlsx ou .csv):", type=["xlsx", "csv"])
@@ -53,7 +42,6 @@ if api_key:
                 df_data = pd.read_csv(uploaded_file)
                 data_text = df_data.to_string()
             else:
-                # Se for Excel com múltiplas abas
                 excel_file = pd.ExcelFile(uploaded_file)
                 data_text = ""
                 for sheet_name in excel_file.sheet_names:
@@ -64,9 +52,18 @@ if api_key:
             
             # Botão de Ação
             if st.button("🚀 Gerar Grade de Horários", type="primary"):
-                with st.spinner("Analisando restrições e calculando a grade otimizada... (Isso pode levar alguns segundos)"):
+                with st.spinner("Analisando restrições e calculando a grade otimizada..."):
                     prompt_usuario = f"Analise os dados abaixo e gere o horário completo do turno Matutino:\n\n{data_text}"
-                    response = model.generate_content(prompt_usuario)
+                    
+                    # Chamada usando a nova API e o modelo mais atual
+                    response = client.models.generate_content(
+                        model='gemini-2.0-flash',
+                        contents=prompt_usuario,
+                        config=types.GenerateContentConfig(
+                            system_instruction=system_instructions,
+                            temperature=0.1,
+                        )
+                    )
                     
                     st.markdown("---")
                     st.markdown("### 📊 Resultado Gerado")
