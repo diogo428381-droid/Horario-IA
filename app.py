@@ -22,8 +22,15 @@ if not api_key:
         api_key = st.secrets["GEMINI_API_KEY"]
 
 if api_key:
-    # Inicializa o cliente com o novo SDK do Gemini
-    client = genai.Client(api_key=api_key)
+    # Tenta pegar a chave diretamente dos Secrets do Streamlit
+api_key = None
+
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+
+# Caso não exista nos Secrets, aí sim mostra o campo na barra lateral como opção de emergência
+if not api_key:
+    api_key = st.sidebar.text_input("Cole sua Gemini API Key:", type="password")
 
     # Instruções do Sistema
     system_instructions = """
