@@ -57,7 +57,7 @@ if api_key:
                     
                     # Chamada usando a nova API e o modelo mais atual
                     response = client.models.generate_content(
-                        model='gemini-2.0-flash',
+                        model='gemini-1.5-flash',
                         contents=prompt_usuario,
                         config=types.GenerateContentConfig(
                             system_instruction=system_instructions,
