@@ -119,7 +119,7 @@ Após entregar o formato de exportação solicitado no Passo 3, pergunte obrigat
                     prompt_usuario = f"Analise os dados abaixo e gere o horário completo do turno Matutino:\n\n{data_text}"
                     
                     response = client.models.generate_content(
-                        model='gemini-2.0-flash',
+                        model='gemini-1.5-flash',
                         contents=prompt_usuario,
                         config=types.GenerateContentConfig(
                             system_instruction=system_instructions,
